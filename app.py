@@ -1,174 +1,122 @@
 import streamlit as st
-import openai
-from datetime import datetime
 
-# ----------------------------
-# CONFIG
-# ----------------------------
-openai.api_key = "YOUR_OPENAI_API_KEY"  # Replace with your key
-st.set_page_config(page_title="Personal Health Coach", page_icon="💚", layout="wide")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Personal Health Coach",
+    page_icon="💙",
+    layout="centered"
+)
 
-# ----------------------------
-# SIDEBAR
-# ----------------------------
-st.sidebar.header("ℹ️ About")
-st.sidebar.markdown("""
-Welcome to **Personal Health Coach!**  
-- Enter your medical history  
-- Chat with your AI coach  
-- Complete mental health assessment  
-- Get personalized wellness timetable  
-""")
+# ---------------- CUSTOM CSS ----------------
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
-# ----------------------------
-# HEADER
-# ----------------------------
-st.markdown("<h1 style='color:green;'>💚 Personal Health Coach</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='color:gray;'>Your AI wellness companion for mind & body</h3>", unsafe_allow_html=True)
-st.write("---")
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f7fb;
+}
 
-# ----------------------------
-# SESSION STATE
-# ----------------------------
-if "conversation" not in st.session_state:
-    st.session_state.conversation = []
+.main {
+    background-color: #f4f7fb;
+}
 
-if "medical_history" not in st.session_state:
-    st.session_state.medical_history = {}
+.chat-box {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
 
-# ----------------------------
-# SECTION 1: MEDICAL HISTORY
-# ----------------------------
-with st.container():
-    st.markdown("<h2 style='color:blue;'>📝 Medical History</h2>", unsafe_allow_html=True)
-    history_option = st.radio("Do you have previous medical history?", ["Yes", "No"], horizontal=True)
+.user-msg {
+    background-color: #e6f0ff;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
 
-    if history_option == "Yes":
-        uploaded_file = st.file_uploader("Upload your medical history (PDF or TXT)")
-        if uploaded_file:
-            st.success("Medical history uploaded!")
-            try:
-                history_text = uploaded_file.read().decode("utf-8")
-            except:
-                history_text = str(uploaded_file)
-            st.session_state.medical_history = history_text
+.ai-msg {
+    background-color: #f1f5f9;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+h1 {
+    color: #1f2937;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 15px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- HEADER ----------------
+st.markdown("<h1>💙 Personal Health Coach</h1>", unsafe_allow_html=True)
+st.markdown(
+    "<p class='subtitle'>A calm, empathetic AI companion for mental & physical wellness</p>",
+    unsafe_allow_html=True
+)
+
+st.divider()
+
+# ---------------- SESSION STATE ----------------
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": "Hello 🌱 I’m your Personal Health Coach. You can talk to me about how you're feeling—mentally or physically. I’m here to listen."
+        }
+    ]
+
+# ---------------- CHAT DISPLAY ----------------
+for msg in st.session_state.messages:
+    if msg["role"] == "user":
+        st.markdown(f"<div class='user-msg'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
     else:
-        st.write("Let's create your medical history interactively.")
-        col1, col2 = st.columns(2)
-        with col1:
-            name = st.text_input("Your Name")
-            age = st.number_input("Age", 0, 120)
-        with col2:
-            weight = st.number_input("Weight (kg)", 0, 300)
-            height = st.number_input("Height (cm)", 0, 250)
-        lifestyle = st.text_area("Describe your lifestyle habits (exercise, diet, sleep, stress)")
+        st.markdown(f"<div class='ai-msg'><b>Coach:</b> {msg['content']}</div>", unsafe_allow_html=True)
 
-        if st.button("Save History"):
-            st.session_state.medical_history = {
-                "name": name,
-                "age": age,
-                "weight": weight,
-                "height": height,
-                "lifestyle": lifestyle
-            }
-            st.success("Medical history saved!")
+# ---------------- USER INPUT ----------------
+user_input = st.chat_input("Share what’s on your mind...")
 
-st.write("---")
+# ---------------- AI LOGIC (TEMP – RULE BASED) ----------------
+def ai_reply(user_text):
+    text = user_text.lower()
 
-# ----------------------------
-# SECTION 2: AI CHAT
-# ----------------------------
-with st.container():
-    st.markdown("<h2 style='color:purple;'>💬 Chat with your AI Coach</h2>", unsafe_allow_html=True)
-    user_input = st.text_input("Type your message here...")
-
-    if st.button("Send") and user_input:
-        st.session_state.conversation.append({"role": "user", "content": user_input})
-
-        conversation_text = ""
-        for msg in st.session_state.conversation:
-            conversation_text += f"{msg['role']}: {msg['content']}\n"
-
-        if st.session_state.medical_history:
-            conversation_text += f"Medical History: {st.session_state.medical_history}\n"
-
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful, empathetic AI health coach. You never prescribe medicines or make diagnoses. You give lifestyle, wellness, and preventive health guidance."},
-                {"role": "user", "content": conversation_text}
-            ],
-            max_tokens=300
+    if any(word in text for word in ["sad", "depressed", "anxious", "low", "stress"]):
+        return (
+            "I’m really glad you shared this 🤍\n\n"
+            "Feeling this way can be heavy. Try slowing your breathing for a minute and remind yourself "
+            "that what you’re feeling is valid. If these feelings continue, speaking to a mental health professional can help a lot."
         )
 
-        answer = response.choices[0].message.content
-        st.session_state.conversation.append({"role": "assistant", "content": answer})
+    if any(word in text for word in ["pain", "fever", "headache", "tired", "sleep"]):
+        return (
+            "Thanks for telling me. Based on what you shared, it’s important to rest, stay hydrated, "
+            "and observe your symptoms. If the discomfort increases or lasts long, please consult a doctor."
+        )
 
-    # Display conversation
-    for msg in st.session_state.conversation:
-        if msg["role"] == "user":
-            st.markdown(f"<div style='background-color:#D0E8FF; padding:10px; border-radius:10px; color:#0000FF; margin-bottom:5px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"<div style='background-color:#DFFFD6; padding:10px; border-radius:10px; color:#008000; margin-bottom:5px;'><b>Coach:</b> {msg['content']}</div>", unsafe_allow_html=True)
+    if any(word in text for word in ["fit", "healthy", "exercise", "diet", "routine"]):
+        return (
+            "That’s great to hear 🌟\n\n"
+            "A balanced routine with regular exercise, proper sleep, and mindful eating can do wonders. "
+            "If you want, I can help you design a simple daily wellness schedule."
+        )
 
-st.write("---")
+    return (
+        "Thank you for sharing 🤍\n\n"
+        "Tell me a bit more about how you’re feeling physically or emotionally. "
+        "I’m here to understand and guide you safely."
+    )
 
-# ----------------------------
-# SECTION 3: MENTAL HEALTH TEST (Creative Feature)
-# ----------------------------
-with st.container():
-    st.markdown("<h2 style='color:orange;'>🧠 Mental Health Self-Test</h2>", unsafe_allow_html=True)
-    st.write("Answer a few questions to check your mental wellness:")
+# ---------------- HANDLE MESSAGE ----------------
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-    q1 = st.slider("On a scale of 1-10, how stressed do you feel?", 1, 10)
-    q2 = st.slider("How many hours do you sleep on average?", 0, 12)
-    q3 = st.radio("Do you feel anxious often?", ["Yes", "No"])
-    q4 = st.radio("Do you feel low energy frequently?", ["Yes", "No"])
+    response = ai_reply(user_input)
 
-    if st.button("Get Mental Health Insight"):
-        score = 0
-        score += q1
-        score += 10 - q2  # less sleep = higher score
-        score += 5 if q3 == "Yes" else 0
-        score += 5 if q4 == "Yes" else 0
+    st.session_state.messages.append({"role": "assistant", "content": response})
 
-        if score < 10:
-            st.success("✅ Your mental wellness seems good!")
-        elif score < 20:
-            st.info("⚠️ Moderate stress detected. Try relaxation and balanced lifestyle.")
-        else:
-            st.warning("❌ High stress/anxiety detected. Consider professional consultation.")
-
-st.write("---")
-
-# ----------------------------
-# SECTION 4: WELLNESS TIMETABLE (Creative Feature)
-# ----------------------------
-with st.container():
-    st.markdown("<h2 style='color:teal;'>📅 Personalized Wellness Timetable</h2>", unsafe_allow_html=True)
-    st.write("Your AI coach can suggest a simple daily schedule based on your goals:")
-
-    goal = st.radio("Choose your main goal:", ["Improve Fitness", "Reduce Stress", "Balanced Lifestyle"])
-
-    if st.button("Generate Timetable"):
-        if goal == "Improve Fitness":
-            st.markdown("""
-- **Morning:** 30 min exercise  
-- **Afternoon:** Healthy meal + walk  
-- **Evening:** Stretching + meditation  
-- **Night:** Sleep 7-8 hours
-""")
-        elif goal == "Reduce Stress":
-            st.markdown("""
-- **Morning:** Meditation 15 min  
-- **Afternoon:** Light walk + hydration  
-- **Evening:** Journaling / relaxation  
-- **Night:** Sleep 7-8 hours
-""")
-        else:
-            st.markdown("""
-- **Morning:** Light exercise + healthy breakfast  
-- **Afternoon:** Work + short breaks  
-- **Evening:** Meditation + light dinner  
-- **Night:** Sleep 7-8 hours
-""")
+    st.rerun()
