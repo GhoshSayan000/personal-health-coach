@@ -1,6 +1,11 @@
 import streamlit as st
-from openai import OpenAI
 import os
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
+
+from openai import OpenAI
 
 # ---------- Page Config ----------
 st.set_page_config(
