@@ -3,120 +3,118 @@ import streamlit as st
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Personal Health Coach",
-    page_icon="💙",
+    page_icon="💗",
     layout="centered"
 )
 
 # ---------------- CUSTOM CSS ----------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background-color: #f4f7fb;
+    font-family: 'Poppins', sans-serif;
 }
 
 .main {
-    background-color: #f4f7fb;
+    background: linear-gradient(180deg, #fde2e8 0%, #fff5f8 100%);
 }
 
-.chat-box {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 10px;
-}
-
-.user-msg {
-    background-color: #e6f0ff;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-}
-
-.ai-msg {
-    background-color: #f1f5f9;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-}
-
-h1 {
-    color: #1f2937;
+.title {
+    font-size: 48px;
+    font-weight: 600;
+    color: #7a1c3a;
+    text-align: center;
+    margin-top: 40px;
 }
 
 .subtitle {
-    color: #6b7280;
-    font-size: 15px;
+    text-align: center;
+    color: #6b3a4a;
+    font-size: 18px;
+    margin-bottom: 40px;
+}
+
+.card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: scale(1.03);
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #7a1c3a;
+}
+
+.card-text {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+button {
+    background-color: #f472b6 !important;
+    color: white !important;
+    border-radius: 10px !important;
+    height: 45px;
+    font-weight: 500;
+}
+
+button:hover {
+    background-color: #ec4899 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
-st.markdown("<h1>💙 Personal Health Coach</h1>", unsafe_allow_html=True)
+st.markdown("<div class='title'>💗 Personal Health Coach</div>", unsafe_allow_html=True)
 st.markdown(
-    "<p class='subtitle'>A calm, empathetic AI companion for mental & physical wellness</p>",
+    "<div class='subtitle'>A warm, caring AI companion for your mental & physical well-being</div>",
     unsafe_allow_html=True
 )
 
-st.divider()
+# ---------------- OPTIONS ----------------
+col1, col2, col3 = st.columns(3)
 
-# ---------------- SESSION STATE ----------------
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {
-            "role": "assistant",
-            "content": "Hello 🌱 I’m your Personal Health Coach. You can talk to me about how you're feeling—mentally or physically. I’m here to listen."
-        }
-    ]
-
-# ---------------- CHAT DISPLAY ----------------
-for msg in st.session_state.messages:
-    if msg["role"] == "user":
-        st.markdown(f"<div class='user-msg'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div class='ai-msg'><b>Coach:</b> {msg['content']}</div>", unsafe_allow_html=True)
-
-# ---------------- USER INPUT ----------------
-user_input = st.chat_input("Share what’s on your mind...")
-
-# ---------------- AI LOGIC (TEMP – RULE BASED) ----------------
-def ai_reply(user_text):
-    text = user_text.lower()
-
-    if any(word in text for word in ["sad", "depressed", "anxious", "low", "stress"]):
-        return (
-            "I’m really glad you shared this 🤍\n\n"
-            "Feeling this way can be heavy. Try slowing your breathing for a minute and remind yourself "
-            "that what you’re feeling is valid. If these feelings continue, speaking to a mental health professional can help a lot."
-        )
-
-    if any(word in text for word in ["pain", "fever", "headache", "tired", "sleep"]):
-        return (
-            "Thanks for telling me. Based on what you shared, it’s important to rest, stay hydrated, "
-            "and observe your symptoms. If the discomfort increases or lasts long, please consult a doctor."
-        )
-
-    if any(word in text for word in ["fit", "healthy", "exercise", "diet", "routine"]):
-        return (
-            "That’s great to hear 🌟\n\n"
-            "A balanced routine with regular exercise, proper sleep, and mindful eating can do wonders. "
-            "If you want, I can help you design a simple daily wellness schedule."
-        )
-
-    return (
-        "Thank you for sharing 🤍\n\n"
-        "Tell me a bit more about how you’re feeling physically or emotionally. "
-        "I’m here to understand and guide you safely."
+with col1:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='card-title'>💬 Chat as a Friend</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='card-text'>Talk freely with an empathetic AI who listens without judgment.</div>",
+        unsafe_allow_html=True
     )
+    st.button("Start Chat")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ---------------- HANDLE MESSAGE ----------------
-if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
+with col2:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='card-title'>🩺 Health Diagnosis</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='card-text'>Share symptoms or medical history and get safe, guided insights.</div>",
+        unsafe_allow_html=True
+    )
+    st.button("Get Diagnosis")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    response = ai_reply(user_input)
+with col3:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='card-title'>📅 Wellness Timetable</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='card-text'>Create a realistic daily routine that fits your lifestyle.</div>",
+        unsafe_allow_html=True
+    )
+    st.button("Build Timetable")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
-
-    st.rerun()
+# ---------------- FOOTER ----------------
+st.markdown(
+    "<p style='text-align:center; color:#9a4c68; margin-top:40px;'>You are not alone. Your health matters.</p>",
+    unsafe_allow_html=True
+)
