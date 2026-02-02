@@ -1,80 +1,143 @@
 import streamlit as st
-import os
-from dotenv import load_dotenv
+from agent.coach_agent import HealthCoachAgent
+import time
 
-# Load .env file
-load_dotenv()
-
-from openai import OpenAI
-
-# ---------- Page Config ----------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Chat with Coach",
-    page_icon="💬",
+    page_title="Chat with Health Coach",
+    page_icon="💖",
     layout="centered"
 )
 
-# ---------- Background & Style ----------
+# ---------------- CUSTOM CSS ----------------
 st.markdown("""
 <style>
 body {
-    background-color: #fdecef;
+    background-color: #fff1f6;
 }
 .chat-box {
-    background-color: #ffffff;
-    padding: 15px;
+    padding: 10px;
     border-radius: 12px;
-    margin-bottom: 10px;
 }
-.user {
-    color: #b30059;
-    font-weight: bold;
+.user-msg {
+    background-color: #ffd6e8;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
 }
-.coach {
-    color: #333333;
+.agent-msg {
+    background-color: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border-left: 5px solid #ff4b91;
+}
+.stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Title ----------
-st.markdown("## 💬 Chat with Your AI Coach")
-st.markdown("Talk freely. I'm here to listen, support, and guide you 🤍")
+# ---------------- TITLE SECTION ----------------
+st.markdown("## 💬 Chat with Your Personal Health Coach")
+st.markdown(
+    "This is a **safe, friendly space**. You can talk freely — "
+    "about stress, health, routine, or just how your day feels."
+)
 
-# ---------- OpenAI Client ----------
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+st.divider()
 
-# ---------- Session State ----------
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "system", "content": "You are a warm, friendly, supportive mental health coach. Talk like a caring friend."}
-    ]
+# ---------------- SESSION STATE ----------------
+if "agent" not in st.session_state:
+    st.session_state.agent = HealthCoachAgent()
 
-# ---------- Display Chat ----------
-for msg in st.session_state.messages[1:]:
-    if msg["role"] == "user":
-        st.markdown(
-            f"<div class='chat-box user'>You: {msg['content']}</div>",
-            unsafe_allow_html=True
-        )
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# ---------------- CHAT DISPLAY ----------------
+for speaker, msg in st.session_state.chat_history:
+    if speaker == "You":
+        st.markdown(f"<div class='user-msg'><b>You:</b> {msg}</div>", unsafe_allow_html=True)
     else:
-        st.markdown(
-            f"<div class='chat-box coach'>Coach: {msg['content']}</div>",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"<div class='agent-msg'><b>Coach:</b> {msg}</div>", unsafe_allow_html=True)
 
-# ---------- Input ----------
-user_input = st.chat_input("Type your message...")
+# ---------------- CHAT INPUT ----------------
+user_input = st.chat_input("Type here... I’m listening 💗")
 
 if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    # show typing effect
+    with st.spinner("Coach is thinking..."):
+        time.sleep(0.6)
+        reply = st.session_state.agent.reply(user_input)
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=st.session_state.messages,
-        temperature=0.8
+    st.session_state.chat_history.append(("You", user_input))
+    st.session_state.chat_history.append(("Coach", reply))
+    st.rerun()
+
+st.divider()
+
+# ---------------- QUICK ACTION BUTTONS ----------------
+st.markdown("### 🌱 Quick Conversation Starters")
+
+col1, col2, col3 = st.columns(3)
+
+if col1.button("😔 I feel low"):
+    st.session_state.chat_history.append(
+        ("Coach", st.session_state.agent.reply("I feel sad and low these days"))
+    )
+    st.rerun()
+
+if col2.button("😰 I’m stressed"):
+    st.session_state.chat_history.append(
+        ("Coach", st.session_state.agent.reply("I am stressed and overwhelmed"))
+    )
+    st.rerun()
+
+if col3.button("💪 I want to be healthier"):
+    st.session_state.chat_history.append(
+        ("Coach", st.session_state.agent.reply("I want to improve my lifestyle and health"))
+    )
+    st.rerun()
+
+st.divider()
+
+# ---------------- CHAT STATS ----------------
+st.markdown("### 📊 Conversation Insights")
+
+total_msgs = len(st.session_state.agent.memory)
+sad = sum(1 for m in st.session_state.agent.memory if m["mood"] == "sad")
+stress = sum(1 for m in st.session_state.agent.memory if m["mood"] == "stress")
+healthy = sum(1 for m in st.session_state.agent.memory if m["mood"] == "healthy")
+
+c1, c2, c3, c4 = st.columns(4)
+
+c1.markdown(f"<div class='stat-card'><h3>{total_msgs}</h3><p>Total Messages</p></div>", unsafe_allow_html=True)
+c2.markdown(f"<div class='stat-card'><h3>{sad}</h3><p>Low Mood Signals</p></div>", unsafe_allow_html=True)
+c3.markdown(f"<div class='stat-card'><h3>{stress}</h3><p>Stress Signals</p></div>", unsafe_allow_html=True)
+c4.markdown(f"<div class='stat-card'><h3>{healthy}</h3><p>Positive Signals</p></div>", unsafe_allow_html=True)
+
+st.divider()
+
+# ---------------- REPORT GENERATION ----------------
+st.markdown("### 📄 Generate Wellness Report")
+
+st.caption(
+    "This summary is created from your conversation patterns. "
+    "It is **not a medical diagnosis**."
+)
+
+if st.button("🩺 Generate My Health Summary"):
+    report = st.session_state.agent.generate_report()
+    st.text_area(
+        "Your Personal Health Summary",
+        report,
+        height=260
     )
 
-    reply = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": reply})
-
-    st.rerun()
+# ---------------- FOOTER ----------------
+st.markdown("---")
+st.caption("💖 Personal Health Coach — Built with care, empathy, and responsibility.")
