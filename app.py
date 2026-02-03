@@ -7,6 +7,14 @@ st.set_page_config(
     layout="centered"
 )
 
+# ---------------- TOUR STATE ----------------
+if "tour_step" not in st.session_state:
+    st.session_state.tour_step = 0
+
+if "tour_done" not in st.session_state:
+    st.session_state.tour_done = False
+
+
 # ---------------- CUSTOM CSS ----------------
 st.markdown("""
 <style>
@@ -112,6 +120,70 @@ with col3:
     )
     st.button("Build Timetable")
     st.markdown("</div>", unsafe_allow_html=True)
+
+# ---------------- GUIDED TOUR OVERLAY ----------------
+def next_step():
+    if st.session_state.tour_step >= 4:
+        st.session_state.tour_done = True
+        st.session_state.tour_step = 999
+    else:
+        st.session_state.tour_step += 1
+
+if not st.session_state.tour_done and st.session_state.tour_step < 5:
+    st.markdown("""
+    <style>
+    .tour-box {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 320px;
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        z-index: 9999;
+    }
+    .tour-title {
+        font-weight: 600;
+        color: #7a1c3a;
+        margin-bottom: 8px;
+    }
+    .tour-text {
+        font-size: 14px;
+        color: #444;
+        margin-bottom: 12px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    tour_messages = [
+        ("👋 Welcome!", "Hi! I’ll quickly guide you through this app."),
+        ("🏠 Main Page", "This is your home screen where everything starts."),
+        ("💬 Chat as a Friend", "Use this to talk freely and feel heard."),
+        ("🩺 Health Diagnosis", "Here you can get safe, guided health insights."),
+        ("📅 Wellness Timetable", "This helps you build a daily health routine.")
+    ]
+
+    title, text = tour_messages[st.session_state.tour_step]
+
+    st.markdown(f"""
+    <div class="tour-box">
+        <div class="tour-title">{title}</div>
+        <div class="tour-text">{text}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_next, col_skip = st.columns(2)
+
+    with col_next:
+        st.button("Next ➡️", on_click=next_step)
+
+    with col_skip:
+        if st.button("Skip ❌"):
+            st.session_state.tour_done = True
+            st.session_state.tour_step = 999
+
+
 
 # ---------------- FOOTER ----------------
 st.markdown(
