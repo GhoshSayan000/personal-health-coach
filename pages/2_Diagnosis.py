@@ -42,68 +42,6 @@ with st.sidebar:
         """
     )
 
-# -------------------- STEP 1: MEDICAL HISTORY --------------------
-if st.session_state.stage == 1:
-    st.subheader("1️⃣ Medical History")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        medical_history = st.text_area(
-            "Past medical conditions, allergies, medications",
-            placeholder="e.g. Diabetes, asthma, BP, surgery in 2021",
-            height=180
-        )
-
-    with col2:
-        uploaded_docs = st.file_uploader(
-            "Upload prescriptions / reports (optional)",
-            type=["pdf", "png", "jpg", "jpeg"],
-            accept_multiple_files=True
-        )
-
-        if uploaded_docs:
-            st.success(f"{len(uploaded_docs)} document(s) uploaded")
-
-    consent = st.checkbox(
-        "I understand this is not a medical diagnosis and agree to proceed"
-    )
-
-    if st.button("➡️ Continue"):
-        if not consent:
-            st.warning("Please accept the disclaimer to continue.")
-        else:
-            st.session_state.stage = 2
-            st.rerun()
-
-# -------------------- STEP 2: SYMPTOMS --------------------
-elif st.session_state.stage == 2:
-    st.subheader("2️⃣ Current Symptoms")
-
-    symptoms = st.text_area(
-        "Describe what you are experiencing right now",
-        placeholder="e.g. fever, cough, pain, dizziness, fatigue...",
-        height=200
-    )
-
-    duration = st.selectbox(
-        "How long have you had these symptoms?",
-        ["Less than 24 hours", "1–3 days", "4–7 days", "More than a week"]
-    )
-
-    severity = st.slider(
-        "How severe do the symptoms feel?",
-        1, 10, 5
-    )
-
-    if st.button("🧠 Analyze Symptoms"):
-        if not symptoms.strip():
-            st.warning("Please describe your symptoms.")
-        else:
-            st.session_state.symptoms = symptoms
-            st.session_state.stage = 3
-            st.rerun()
-
 # -------------------- DEMO AI ENGINE --------------------
 def demo_ai(symptoms, followups=0):
     s = symptoms.lower()
@@ -169,13 +107,75 @@ def demo_ai(symptoms, followups=0):
         ]
     }
 
+# -------------------- STEP 1: MEDICAL HISTORY --------------------
+if st.session_state.stage == 1:
+    st.subheader("1️⃣ Medical History")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        medical_history = st.text_area(
+            "Past medical conditions, allergies, medications",
+            placeholder="e.g. Diabetes, asthma, BP, surgery in 2021",
+            height=180
+        )
+
+    with col2:
+        uploaded_docs = st.file_uploader(
+            "Upload prescriptions / reports (optional)",
+            type=["pdf", "png", "jpg", "jpeg"],
+            accept_multiple_files=True
+        )
+
+        if uploaded_docs:
+            st.success(f"{len(uploaded_docs)} document(s) uploaded")
+
+    consent = st.checkbox(
+        "I understand this is not a medical diagnosis and agree to proceed"
+    )
+
+    if st.button("➡️ Continue"):
+        if not consent:
+            st.warning("Please accept the disclaimer to continue.")
+        else:
+            st.session_state.stage = 2
+            st.rerun()
+
+# -------------------- STEP 2: SYMPTOMS --------------------
+elif st.session_state.stage == 2:
+    st.subheader("2️⃣ Current Symptoms")
+
+    symptoms = st.text_area(
+        "Describe what you are experiencing right now",
+        placeholder="e.g. fever, cough, pain, dizziness, fatigue...",
+        height=200
+    )
+
+    duration = st.selectbox(
+        "How long have you had these symptoms?",
+        ["Less than 24 hours", "1–3 days", "4–7 days", "More than a week"]
+    )
+
+    severity = st.slider(
+        "How severe do the symptoms feel?",
+        1, 10, 5
+    )
+
+    if st.button("🧠 Analyze Symptoms"):
+        if not symptoms.strip():
+            st.warning("Please describe your symptoms.")
+        else:
+            st.session_state.symptoms = symptoms
+            st.session_state.stage = 3
+            st.rerun()
+
 # -------------------- STEP 3: FOLLOW-UP --------------------
 elif st.session_state.stage == 3:
     st.subheader("3️⃣ AI Follow-up Assessment")
 
     result = demo_ai(st.session_state.symptoms, st.session_state.followup_count)
 
-    st.markdown(f"### 🔍 Initial Assessment")
+    st.markdown("### 🔍 Initial Assessment")
     st.info(result["condition"])
 
     st.markdown("### ❓ Follow-up Questions")
